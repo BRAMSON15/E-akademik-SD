@@ -1,0 +1,101 @@
+@extends('layouts.dashboard')
+
+@section('title', 'Input Nilai')
+@section('header', 'Input Nilai Siswa')
+
+@section('content')
+@if(session('success'))
+<div style="background: var(--success); color: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+    {{ session('success') }}
+</div>
+@endif
+
+<div class="card-container" style="margin-bottom: 2rem;">
+    <h3 style="font-weight: 600; margin-bottom: 1rem; border-bottom: 2px solid var(--gray-light); padding-bottom: 0.5rem;">Form Input Nilai</h3>
+    <form action="{{ route('guru.grades.store') }}" method="POST">
+        @csrf
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div>
+                <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Siswa</label>
+                <select name="student_id" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--gray-light); border-radius: 0.25rem;">
+                    <option value="">Pilih Siswa</option>
+                    @foreach($students as $student)
+                        <option value="{{ $student->id }}">{{ $student->name }} ({{ $student->nis }})</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Mata Pelajaran</label>
+                <select name="subject_id" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--gray-light); border-radius: 0.25rem;">
+                    <option value="">Pilih Mata Pelajaran</option>
+                    @foreach($subjects as $subject)
+                        <option value="{{ $subject->id }}">{{ $subject->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div>
+                <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Jenis Nilai</label>
+                <select name="type" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--gray-light); border-radius: 0.25rem;">
+                    <option value="ulangan">Ulangan</option>
+                    <option value="uas">Ujian Akhir Semester</option>
+                    <option value="pr">Pekerjaan Rumah (PR)</option>
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Nilai (0-100)</label>
+                <input type="number" name="score" min="0" max="100" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--gray-light); border-radius: 0.25rem;">
+            </div>
+            <div>
+                <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Semester</label>
+                <select name="semester" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--gray-light); border-radius: 0.25rem;">
+                    <option value="1">1 (Ganjil)</option>
+                    <option value="2">2 (Genap)</option>
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Tahun Ajaran</label>
+                <input type="text" name="academic_year" value="{{ $tahun_ajaran }}" readonly required style="width: 100%; padding: 0.5rem; border: 1px solid var(--gray-light); border-radius: 0.25rem; background: #f3f4f6;">
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Simpan Nilai</button>
+    </form>
+</div>
+
+<div class="card-container">
+    <h3 style="font-weight: 600; margin-bottom: 1rem; border-bottom: 2px solid var(--gray-light); padding-bottom: 0.5rem;">Riwayat Nilai</h3>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Siswa</th>
+                    <th>Mata Pelajaran</th>
+                    <th>Jenis Nilai</th>
+                    <th>Nilai</th>
+                    <th>Semester</th>
+                    <th>Tahun Ajaran</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($grades as $grade)
+                <tr>
+                    <td>{{ $grade->student->name }}</td>
+                    <td>{{ $grade->subject->name }}</td>
+                    <td style="text-transform: capitalize;">{{ $grade->type == 'uas' ? 'Ujian Akhir Semester' : ($grade->type == 'pr' ? 'PR' : 'Ulangan') }}</td>
+                    <td style="font-weight: bold; color: {{ $grade->score >= 75 ? 'var(--success)' : 'var(--danger)' }}">{{ $grade->score }}</td>
+                    <td>{{ $grade->semester }}</td>
+                    <td>{{ $grade->academic_year }}</td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="5" style="text-align: center; color: var(--gray);">Belum ada riwayat nilai.</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+@endsection

@@ -28,8 +28,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'username' => ['sometimes', 'required', 'string'],
-            'email' => ['sometimes', 'required', 'email'],
+            'username' => ['required', 'string'],
             'password' => ['required', 'string'],
         ];
     }
@@ -43,28 +42,15 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        // Try to authenticate with username first (for admin/guru)
-        if ($this->has('username') && $this->filled('username')) {
-            if (Auth::attempt($this->only('username', 'password'), $this->boolean('remember'))) {
-                RateLimiter::clear($this->throttleKey());
-                return;
-            }
+        if (! Auth::attempt($this->only('username', 'password'), $this->boolean('remember'))) {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'username' => trans('auth.failed'),
+            ]);
         }
 
-        // Try to authenticate with email (for orang tua)
-        if ($this->has('email') && $this->filled('email')) {
-            if (Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->boolean('remember'))) {
-                RateLimiter::clear($this->throttleKey());
-                return;
-            }
-        }
-
-        RateLimiter::hit($this->throttleKey());
-
-        throw ValidationException::withMessages([
-            'username' => trans('auth.failed'),
-            'email' => trans('auth.failed'),
-        ]);
+        RateLimiter::clear($this->throttleKey());
     }
 
     /**
@@ -95,7 +81,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        $identifier = $this->has('username') ? $this->string('username') : $this->string('email');
-        return Str::transliterate(Str::lower($identifier).'|'.$this->ip());
+        return Str::transliterate(Str::lower($this->string('username')).'|'.$this->ip());
     }
 }

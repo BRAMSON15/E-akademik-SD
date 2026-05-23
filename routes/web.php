@@ -33,6 +33,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Kelola Siswa for Guru
         Route::resource('students', App\Http\Controllers\Guru\StudentController::class);
         
+        // Kelola Mata Pelajaran for Guru
+        Route::resource('subjects', App\Http\Controllers\Guru\SubjectController::class);
+        
         Route::get('/grades', [App\Http\Controllers\Guru\GuruController::class, 'grades'])->name('grades');
         Route::post('/grades', [App\Http\Controllers\Guru\GuruController::class, 'storeGrade'])->name('grades.store');
         Route::get('/attendance', [App\Http\Controllers\Guru\GuruController::class, 'attendance'])->name('attendance');

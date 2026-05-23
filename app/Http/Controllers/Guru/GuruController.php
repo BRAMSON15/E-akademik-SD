@@ -19,7 +19,13 @@ class GuruController extends Controller
     public function grades()
     {
         $students = Auth::user()->students;
-        $subjects = Subject::all();
+        // Only show subjects that have been assigned to a specific class
+        // (subjects with null class are old/global seeds that should be ignored)
+        $subjects = Subject::whereNotNull('class')
+                           ->orderBy('class')
+                           ->orderBy('name')
+                           ->get();
+
         $grades = Grade::where('teacher_id', Auth::id())->latest()->get();
         $tahun_ajaran = \App\Models\Setting::where('key', 'tahun_ajaran')->first()->value ?? '2023/2024';
         return view('guru.grades', compact('students', 'subjects', 'grades', 'tahun_ajaran'));

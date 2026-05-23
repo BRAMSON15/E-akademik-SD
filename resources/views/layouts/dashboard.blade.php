@@ -60,6 +60,11 @@
                         </a>
                     </div>
                     <div class="nav-item">
+                        <a href="{{ route('guru.subjects.index') }}" class="nav-link {{ request()->routeIs('guru.subjects.*') ? 'active' : '' }}">
+                            <i class="fas fa-book"></i> Kelola Mata Pelajaran
+                        </a>
+                    </div>
+                    <div class="nav-item">
                         <a href="{{ route('guru.grades') }}" class="nav-link {{ request()->routeIs('guru.grades') ? 'active' : '' }}">
                             <i class="fas fa-file-signature"></i> Input Nilai
                         </a>

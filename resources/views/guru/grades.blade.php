@@ -17,23 +17,59 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
             <div>
                 <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Siswa</label>
-                <select name="student_id" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--gray-light); border-radius: 0.25rem;">
+                <select id="student_select" name="student_id" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--gray-light); border-radius: 0.25rem;">
                     <option value="">Pilih Siswa</option>
                     @foreach($students as $student)
-                        <option value="{{ $student->id }}">{{ $student->name }} ({{ $student->nis }})</option>
+                        <option value="{{ $student->id }}" data-class="{{ $student->class }}">{{ $student->name }} ({{ $student->nis }})</option>
                     @endforeach
                 </select>
             </div>
             <div>
                 <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Mata Pelajaran</label>
-                <select name="subject_id" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--gray-light); border-radius: 0.25rem;">
+                <select id="subject_select" name="subject_id" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--gray-light); border-radius: 0.25rem;">
                     <option value="">Pilih Mata Pelajaran</option>
                     @foreach($subjects as $subject)
-                        <option value="{{ $subject->id }}">{{ $subject->name }}</option>
+                        <option value="{{ $subject->id }}" data-class="{{ $subject->class }}">{{ $subject->name }}</option>
                     @endforeach
                 </select>
             </div>
         </div>
+
+        <script>
+            const studentSelect = document.getElementById('student_select');
+            const subjectSelect = document.getElementById('subject_select');
+            // Cache all options from the original rendered select
+            const allSubjectOptions = Array.from(subjectSelect.options);
+
+            // Hide all subject options initially (before a student is picked)
+            while (subjectSelect.options.length > 1) {
+                subjectSelect.remove(1);
+            }
+
+            studentSelect.addEventListener('change', function() {
+                const selectedClass = this.options[this.selectedIndex].dataset.class;
+                // Extract numeric grade level: "3A" -> "3", "1B" -> "1"
+                const numericMatch = selectedClass ? selectedClass.match(/^\d+/) : null;
+                const gradeLevel = numericMatch ? numericMatch[0] : null;
+
+                // Clear current subject options (keep first "Pilih" placeholder)
+                while (subjectSelect.options.length > 1) {
+                    subjectSelect.remove(1);
+                }
+                subjectSelect.selectedIndex = 0;
+
+                if (gradeLevel) {
+                    // Only add subjects whose class STRICTLY matches the grade level number
+                    // (e.g. subject.class === "1" for a student in class "1A")
+                    // Subjects with null class (old global seeds) are intentionally excluded
+                    allSubjectOptions.forEach(option => {
+                        if (option.value && option.dataset.class === gradeLevel) {
+                            subjectSelect.appendChild(option.cloneNode(true));
+                        }
+                    });
+                }
+            });
+        </script>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
             <div>

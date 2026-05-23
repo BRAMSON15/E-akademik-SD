@@ -71,7 +71,7 @@
             });
         </script>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
             <div>
                 <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Jenis Nilai</label>
                 <select name="type" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--gray-light); border-radius: 0.25rem;">
@@ -90,10 +90,6 @@
                     <option value="1">1 (Ganjil)</option>
                     <option value="2">2 (Genap)</option>
                 </select>
-            </div>
-            <div>
-                <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Tahun Ajaran</label>
-                <input type="text" name="academic_year" value="{{ $tahun_ajaran }}" readonly required style="width: 100%; padding: 0.5rem; border: 1px solid var(--gray-light); border-radius: 0.25rem; background: #f3f4f6;">
             </div>
         </div>
 

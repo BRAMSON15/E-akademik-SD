@@ -11,8 +11,7 @@ class AdminController extends Controller
 {
     public function dashboard()
     {
-        $tahun_ajaran = \App\Models\Setting::where('key', 'tahun_ajaran')->first()->value ?? '2023/2024';
-        return view('admin.dashboard', compact('tahun_ajaran'));
+        return view('admin.dashboard');
     }
 
     public function index()

@@ -27,8 +27,7 @@ class GuruController extends Controller
                            ->get();
 
         $grades = Grade::where('teacher_id', Auth::id())->latest()->get();
-        $tahun_ajaran = \App\Models\Setting::where('key', 'tahun_ajaran')->first()->value ?? '2023/2024';
-        return view('guru.grades', compact('students', 'subjects', 'grades', 'tahun_ajaran'));
+        return view('guru.grades', compact('students', 'subjects', 'grades'));
     }
 
     public function storeGrade(Request $request)
@@ -39,8 +38,12 @@ class GuruController extends Controller
             'score' => 'required|numeric|min:0|max:100',
             'type' => 'required|in:ulangan,uas,pr',
             'semester' => 'required|numeric',
-            'academic_year' => 'required|string',
         ]);
+
+        // Generate academic year automatically based on current year
+        $currentYear = now()->year;
+        $nextYear = $currentYear + 1;
+        $academic_year = "{$currentYear}/{$nextYear}";
 
         Grade::create([
             'student_id' => $request->student_id,
@@ -49,37 +52,68 @@ class GuruController extends Controller
             'score' => $request->score,
             'type' => $request->type,
             'semester' => $request->semester,
-            'academic_year' => $request->academic_year,
+            'academic_year' => $academic_year,
         ]);
 
         return redirect()->route('guru.grades')->with('success', 'Nilai berhasil disimpan');
     }
 
-    public function attendance()
+    public function attendance(Request $request)
     {
-        $students = Auth::user()->students;
+        $allStudents = Auth::user()->students;
+        
+        // Get classes ONLY from students taught by this teacher
+        $classes = $allStudents->pluck('class')
+                               ->filter() // Remove null values
+                               ->unique()
+                               ->sort()
+                               ->values();
+        
+        $selectedClass = $request->query('class') ?? $classes->first();
+        
+        // Filter students by selected class - use strict comparison
+        $students = $allStudents->where('class', $selectedClass)->values();
+        
+        $month = $request->query('month') ? \Carbon\Carbon::createFromFormat('Y-m', $request->query('month')) : today();
+        $daysInMonth = $month->daysInMonth;
+        
+        // Get all attendances for this month for the filtered students
         $attendances = Attendance::whereIn('student_id', $students->pluck('id'))
-            ->whereDate('date', today())
+            ->whereBetween('date', [
+                $month->copy()->startOfMonth(),
+                $month->copy()->endOfMonth()
+            ])
             ->get();
-        return view('guru.attendance', compact('students', 'attendances'));
+        
+        return view('guru.attendance', compact('students', 'attendances', 'month', 'daysInMonth', 'classes', 'selectedClass'));
     }
 
     public function storeAttendance(Request $request)
     {
         $request->validate([
-            'attendances' => 'required|array',
-            'attendances.*' => 'in:hadir,izin,sakit,alpa',
+            'attendance' => 'required|array',
+            'month' => 'required|date_format:Y-m',
         ]);
 
-        $date = today();
+        $month = \Carbon\Carbon::createFromFormat('Y-m', $request->month);
 
-        foreach ($request->attendances as $student_id => $status) {
-            Attendance::updateOrCreate(
-                ['student_id' => $student_id, 'date' => $date],
-                ['status' => $status]
-            );
+        // Process attendance data
+        foreach ($request->attendance as $student_id => $dates) {
+            foreach ($dates as $date => $status) {
+                if ($status) { // Only save if status is not empty
+                    Attendance::updateOrCreate(
+                        ['student_id' => $student_id, 'date' => $date],
+                        ['status' => $status]
+                    );
+                } else {
+                    // Delete if status is empty
+                    Attendance::where('student_id', $student_id)
+                        ->where('date', $date)
+                        ->delete();
+                }
+            }
         }
 
-        return redirect()->route('guru.attendance')->with('success', 'Absensi berhasil disimpan');
+        return redirect()->route('guru.attendance', ['month' => $month->format('Y-m')])->with('success', 'Absensi berhasil disimpan');
     }
 }

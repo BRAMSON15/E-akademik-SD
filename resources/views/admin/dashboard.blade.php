@@ -40,18 +40,6 @@
             </div>
         </div>
     </div>
-    
-    <div class="stat-card" style="background: linear-gradient(135deg, var(--primary) 0%, #db2777 100%); color: white; border: none;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-            <div>
-                <div class="label" style="color: rgba(255,255,255,0.9)">Tahun Ajaran</div>
-                <div class="value" style="color: white">{{ $tahun_ajaran }}</div>
-            </div>
-            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(255,255,255,0.2); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
-                <i class="fas fa-calendar-alt"></i>
-            </div>
-        </div>
-    </div>
 </div>
 
 <div class="header" style="margin-top: 3rem; margin-bottom: 1.5rem;">
